@@ -1,0 +1,9 @@
+requests~=2.27.1
+urllib3~=1.26.8
+wafw00f~=2.2.0
+pluginbase~=1.0.1
+setuptools~=63.2.0
+HackRequests~=1.2
+python-nmap~=0.7.1
+gevent~=22.10.2
+beautifulsoup4~=4.11.1
