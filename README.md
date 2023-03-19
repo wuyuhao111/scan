@@ -107,7 +107,7 @@
 
 ## 使用说明：
 
-**命令格式：**python main.py -参数 url  或  python main.py -参数 -参数
+命令格式：python main.py -参数 url  或  python main.py -参数 -参数
 
 python main.py会显示出所有参数，最底下回报错：没有输入参数，这个不用理，是没有进行优化
 
