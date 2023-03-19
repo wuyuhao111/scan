@@ -38,11 +38,14 @@ def Hackreq():
 
 
 def openFile(urls):  # 这里做一个进程放链接
-    for file in file_line:
-        url = urls + file
-        if "http://" not in url:
-            url = "http://" + url
-        urls_line.append(url)  # 去掉\n
+    if file_line != 0:
+        for file in file_line:
+            url = urls + file
+            if "http://" not in url:
+                url = "http://" + url
+            urls_line.append(url)  # 去掉\n
+    else:
+        exit(0)
 
 
 def write(f):  # 将成功访问的起一个线程写入文件
@@ -55,11 +58,15 @@ def write(f):  # 将成功访问的起一个线程写入文件
 
 
 def file_file():
-    for file in open('E:/github/scan/dictionary/file.txt', 'r', encoding="utf-8"):
-        if '/' not in file:
-            file = r'/' + file
-        file = file.replace('\n', '')
-        file_line.append(file)
+    try:
+        for file in open('E:/github/scan/dictionary/file.txt', 'r', encoding="utf-8"):
+            if '/' not in file:
+                file = r'/' + file
+            file = file.replace('\n', '')
+            file_line.append(file)
+    except Exception as e:
+        print("file.txt不存在")
+        pass
 
 def thread(url_url):
     print("正在进行文件路径爆破\n")
@@ -77,8 +84,12 @@ def thread(url_url):
             for t in threads:  # 遍历线程列表
                 t.daemon = True  # 将线程声明为守护线程，必须在start方法调用之前设置，如果不设置守护线程程序会无线挂起
                 t.start()
+            for t in threads:
                 t.join()
             f.close()
     except Exception as e:
         print(e)
         pass
+
+if __name__ == "__main__":
+    thread("127.0.0.1")

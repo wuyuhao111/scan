@@ -2,7 +2,7 @@ import threading
 
 import gevent
 from gevent import monkey
-
+from concurrent.futures import ThreadPoolExecutor
 monkey.patch_all()
 import requests
 import json, hashlib
@@ -10,6 +10,8 @@ from gevent.queue import Queue
 
 url_line = []
 success = []
+
+lock = threading.Lock()
 
 class gwhatweb(object):
     def __init__(self, url):
@@ -20,7 +22,7 @@ class gwhatweb(object):
         for i in webdata:
             self.tasks.put(i)  # 处理字典
         fp.close()
-        print("webdata total:%d" % len(webdata))
+        print("webdata total:%d" % len(webdata) + "识别不出")
 
     def _GetMd5(self, body):  # 将 网页body部分先utf-8编码，在计算MD5（用来识别图标，比对MD5）
         m2 = hashlib.md5()
@@ -79,22 +81,30 @@ def cms(url):
     g.whatweb(1000)
 
 
-def read():
-    for urls in open('E:/github/scan/dictionary/ip.txt'):
-        urls = urls.replace("\n", "")
-        url_line.append(urls)
-
-
-def cms_r():
-    for urls_urls in url_line:
-        g = gwhatweb(urls_urls)
-        g.whatweb(1000)
-
-
-def write(f):
+def write():
+    lock.acquire()
     try:
-        for cms in success:
-            f.write(cms + "\n")
+        with open('E:/github/scan/result/cms_result.txt', mode='w', encoding='utf-8') as f:
+            for url in success:
+                f.write(url)
+    except Exception as e:
+        print(e)
+        pass
+    f.close()
+    lock.release()
+
+
+def information():
+    try:
+        urls = open('E:/github/scan/dictionary/ip.txt')
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            for url in urls:
+                url = url.replace("\n", "")
+                try:
+                    executor.submit(cms, url.strip())
+                except Exception as e:
+                    print(e)
+                    pass
     except Exception as e:
         print(e)
         pass
@@ -102,19 +112,25 @@ def write(f):
 
 def thread_cms():
     try:
-        with open('E:/github/scan/result/cms_result.txt', mode='w', encoding='utf-8') as f:
-            threads = []
-            t1 = threading.Thread(target=read)
-            threads.append(t1)
-            t2 = threading.Thread(target=cms_r)  # 创建第一个子线程，子线程任务是调用task1函数，函数名后面没有（）
-            threads.append(t2)
-            t3 = threading.Thread(target=write, args=(f,))
-            threads.append(t3)
+        threads = []
+        t1 = threading.Thread(target=information)  # 创建第一个子线程，子线程任务是调用task1函数，函数名后面没有（）
+        threads.append(t1)
+        t2 = threading.Thread(target=write)
+        threads.append(t2)
+        try:
             for t in threads:  # 遍历线程列表
                 t.daemon = True  # 将线程声明为守护线程，必须在start方法调用之前设置，如果不设置守护线程程序会无线挂起
                 t.start()
+            for t in threads:
                 t.join()
-            f.close()
+        except Exception as e:
+            print(e)
+            pass
     except Exception as e:
         print(e)
         pass
+
+
+if __name__ == "__main__":
+    # cms("www,baidu.com")
+    thread_cms()

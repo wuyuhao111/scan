@@ -12,8 +12,9 @@ def help_use():
     print("-nm nmap端口开放扫描")
     print("-zym 子域名扫描")
     print("-in 内网账号密码爆破")
+    print("-dp rdp端口爆破")
     print("-or 对单个域名进行whois、子域名、waf识别、cnd、路径爆破、nmap端口开放查询、子域名识别")
-    print("前面加-r 表示使用批量IP扫描，使用ip为dictionary/ip.txt")
-    print("-own 对单个ip进行cms、whois、cnd、目录爆破、端口扫描、子域名扫描")
-    print("-r -own 对多个ip进行cms、whois、cnd、目录爆破、端口扫描、子域名扫描")
+    print("前面加r 表示使用批量IP扫描，支持-rw -rz -rc -rup -rcms -rnm -rzym -rin -rdp")
+    #print("-own 对单个ip进行cms、whois、cnd、目录爆破、端口扫描、子域名扫描")
+    #print("-r -own 对多个ip进行cms、whois、cnd、目录爆破、端口扫描、子域名扫描")
 

@@ -1,10 +1,17 @@
-# 首先我们要导入requests模块和bs4模块里的BeautifulSoup和time模块
-import requests
+import threading
+
+import requests, sys
 import time
 from bs4 import BeautifulSoup
+from concurrent.futures import ThreadPoolExecutor
 
 # 设置好开始时间点
 strat = time.time()
+
+success = []
+ip_line = []
+
+lock = threading.Lock()
 
 
 class G:
@@ -14,11 +21,11 @@ class G:
 
 
 def chax(url):
-    # 询问用户要查询的域名
     lid = url
     # 设置浏览器头过反爬
     head = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36'}
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36'
+    }
     # 设置好url
     url = "http://site.ip138.com/{}/".format(lid)
     urldomain = "http://site.ip138.com/{}/domain.htm".format(lid)
@@ -36,51 +43,104 @@ def chax(url):
     for x in gf.find_all('p'):
         # 使用text的内容返回
         link = x.get_text()
+        success.append(url + " :" + "ip解析记录:" + link + "\n")
         print(link)
 
 
-def cms_cms(url):
+def cms_cms(url):  # 单个ip使用
     print("正在进行whois查询")
     chax(url)
     gf1 = BeautifulSoup(G.rb1.content, 'html.parser')
     print('[+]子域名查询')
     for v in gf1.find_all('p'):
         link2 = v.get_text()
+        success.append("子域名查询：" + link2 + "\n")
         print(link2)
     gf2 = BeautifulSoup(G.rb2.content, 'html.parser')
     print('[+]备案查询')
     for s in gf2.find_all('p'):
         link3 = s.get_text()
+        success.append("备案信息：" + link3 + "\n")
         print(link3)
     gf3 = BeautifulSoup(G.rb3.content, 'html.parser')
     print('[+]whois查询')
     for k in gf3.find_all('p'):
         link4 = k.get_text()
+        success.append("whois信息：" + link4 + "\n")
+        success.append("------------------------------------------------")
         print(link4)
     end = time.time()
     print('查询耗时:', end - strat)
 
 
-def cms_cms_r():
-    for url in open('E:/github/scan/dictionary/ip.txt'):
-        chax(url)
-        gf1 = BeautifulSoup(G.rb1.content, 'html.parser')
-        print('[+]子域名查询')
-        for v in gf1.find_all('p'):
-            link2 = v.get_text()
-            print(link2)
-        gf2 = BeautifulSoup(G.rb2.content, 'html.parser')
-        print('[+]备案查询')
-        for s in gf2.find_all('p'):
-            link3 = s.get_text()
-            print(link3)
-        gf3 = BeautifulSoup(G.rb3.content, 'html.parser')
-        print('[+]whois查询')
-        for k in gf3.find_all('p'):
-            link4 = k.get_text()
-            print(link4)
-        end = time.time()
-        print('查询耗时:', end - strat)
+def cms_cms_r(url):  # 批量使用
+    print("正在进行whois查询")
+    chax(url)
+    gf1 = BeautifulSoup(G.rb1.content, 'html.parser')
+    print('[+]子域名查询')
+    for v in gf1.find_all('p'):
+        link2 = v.get_text()
+        success.append(url + " :" + "子域名查询：" + link2 + "\n")
+        print(link2)
+    gf2 = BeautifulSoup(G.rb2.content, 'html.parser')
+    print('[+]备案查询')
+    for s in gf2.find_all('p'):
+        link3 = s.get_text()
+        success.append(url + " :" + "备案信息：" + link3 + "\n")
+        print(link3)
+    gf3 = BeautifulSoup(G.rb3.content, 'html.parser')
+    print('[+]whois查询')
+    for k in gf3.find_all('p'):
+        link4 = k.get_text()
+        success.append(url + " :" + "whois信息：" + link4 + "\n")
+        print(link4)
+    end = time.time()
+    print('查询耗时:', end - strat)
 
-if __name__ == "__main__":
-    cms_cms("www.hqq.icu")
+
+def write():
+    lock.acquire()
+    try:
+        with open('E:/github/scan/result/whois_result.txt', mode='w', encoding='utf-8') as f:
+            for url in success:
+                f.write(url)
+    except Exception as e:
+        print(e)
+        pass
+    f.close()
+    lock.release()
+
+
+def information():
+    try:
+        urls = open('E:/github/scan/dictionary/ip.txt')
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            for url in urls:
+                try:
+                    executor.submit(cms_cms_r, url.strip())
+                except Exception as e:
+                    print(e)
+                    pass
+    except Exception as e:
+        print(e)
+        pass
+
+
+def thread():
+    print("正在进行whois查询\n")
+    try:
+        threads = []
+        t1 = threading.Thread(target=information)
+        threads.append(t1)
+        t2 = threading.Thread(target=write)
+        threads.append(t2)
+        for t in threads:  # 遍历线程列表
+            t.daemon = True  # 将线程声明为守护线程，必须在start方法调用之前设置，如果不设置守护线程程序会无线挂起
+            t.start()
+        for t in threads:
+            t.join()
+    except Exception as e:
+        print(e)
+        pass
+
+

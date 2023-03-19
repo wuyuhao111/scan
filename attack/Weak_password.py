@@ -60,7 +60,7 @@ def thread_ip_username_password():
     threads.append(t1)
     t2 = threading.Thread(target=read_password)  # 创建第一个子线程，子线程任务是调用task1函数，函数名后面没有（）
     threads.append(t2)
-    t3 = threading.Thread(target=read_username())
+    t3 = threading.Thread(target=read_username)
     threads.append(t3)
     t4 = threading.Thread(target=weakPasswd)
     threads.append(t4)
